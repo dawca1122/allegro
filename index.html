@@ -1,10 +1,11 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="pl" class="dark">
   <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Allegro Master Tool</title>
-    
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Predator AI — Panel Dowodzenia</title>
+
+    <!-- Tailwind CDN for fast prototyping -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
       tailwind.config = {
@@ -12,58 +13,151 @@
         theme: {
           extend: {
             colors: {
-              background: '#020617', // slate-950
-              surface: '#0f172a', // slate-900
-              border: '#1e293b', // slate-800
-              primary: '#0ea5e9', // sky-500
-              accent: '#10b981', // emerald-500
-              danger: '#f43f5e', // rose-500
-              warning: '#f59e0b', // amber-500
+              predator: '#00ff99',
+              neon: '#06b6d4'
             }
           }
         }
       }
     </script>
-    
+
     <style>
-      body {
-        background-color: #020617;
-        color: #e2e8f0;
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-      }
-      /* Custom scrollbar for cyberpunk feel */
-      ::-webkit-scrollbar {
-        width: 8px;
-        height: 8px;
-      }
-      ::-webkit-scrollbar-track {
-        background: #0f172a;
-      }
-      ::-webkit-scrollbar-thumb {
-        background: #334155;
-        border-radius: 4px;
-      }
-      ::-webkit-scrollbar-thumb:hover {
-        background: #475569;
-      }
+      body { background: #020617; color: #e6eef8; }
+      .glass { background: rgba(15,23,42,0.6); border: 1px solid rgba(255,255,255,0.04); }
+      .accent { color: #00ff99; }
+      .btn-accent { background: linear-gradient(90deg,#06b6d4,#00ff99); color: #021025 }
     </style>
-    
-    <script type="importmap">
-    {
-      "imports": {
-        "lucide-react": "https://esm.sh/lucide-react@^0.562.0",
-        "recharts": "https://esm.sh/recharts@^3.6.0",
-        "react-dom/": "https://esm.sh/react-dom@^19.2.3/",
-        "react/": "https://esm.sh/react@^19.2.3/",
-        "react": "https://esm.sh/react@^19.2.3"
-      }
-    }
-    </script>
   </head>
-  <body>
-    <div id="root"></div>
-    
-    <script type="module" src="/index.tsx"></script>
-    
+  <body class="antialiased">
+    <div class="min-h-screen flex">
+      <!-- Sidebar -->
+      <aside class="w-72 p-4 glass space-y-6 border-r border-slate-800">
+        <div class="flex items-center space-x-3">
+          <div class="w-10 h-10 rounded-md bg-gradient-to-br from-neon to-predator flex items-center justify-center font-bold text-black">AI</div>
+          <div>
+            <h1 class="text-lg font-bold">Predator AI</h1>
+            <p class="text-sm text-slate-400">Centrum Dowodzenia</p>
+          </div>
+        </div>
+
+        <nav class="mt-4">
+          <ul class="space-y-1">
+            <li><button data-tab="dashboard" class="tab-btn w-full text-left px-3 py-2 rounded-md hover:bg-slate-800">Dashboard (Zamówienia)</button></li>
+            <li><button data-tab="messages" class="tab-btn w-full text-left px-3 py-2 rounded-md hover:bg-slate-800">Wiadomości</button></li>
+            <li><button data-tab="repricing" class="tab-btn w-full text-left px-3 py-2 rounded-md hover:bg-slate-800">Repricing</button></li>
+            <li><button data-tab="seo" class="tab-btn w-full text-left px-3 py-2 rounded-md hover:bg-slate-800">SEO Autopilot</button></li>
+            <li><button data-tab="inventory" class="tab-btn w-full text-left px-3 py-2 rounded-md hover:bg-slate-800">Magazyn</button></li>
+          </ul>
+        </nav>
+
+        <div class="mt-6">
+          <button id="btn-refresh" class="w-full py-2 rounded-md btn-accent">Odśwież na żądanie</button>
+        </div>
+      </aside>
+
+      <!-- Main -->
+      <main class="flex-1 p-6 overflow-y-auto">
+        <header class="flex items-center justify-between mb-6">
+          <div>
+            <h2 class="text-2xl font-bold">Panel Dowodzenia — Predator AI</h2>
+            <p class="text-sm text-slate-400">Widok operacyjny: monitoruj i interweniuj</p>
+          </div>
+          <div class="flex items-center space-x-3">
+            <div id="live-indicator" class="text-sm text-emerald-400">Live</div>
+            <div class="text-sm text-slate-400">Status: <span id="system-status">Online</span></div>
+          </div>
+        </header>
+
+        <!-- Tab contents -->
+        <section id="tab-contents" class="space-y-6">
+          <!-- Dashboard -->
+          <div data-panel="dashboard" class="panel">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+              <div class="glass p-4 rounded-lg">
+                <h3 class="text-sm text-slate-400">Dziś na rękę</h3>
+                <div id="kpi-revenue" class="text-2xl font-bold accent">—</div>
+              </div>
+              <div class="glass p-4 rounded-lg">
+                <h3 class="text-sm text-slate-400">Do wysłania</h3>
+                <div id="kpi-to-ship" class="text-2xl font-bold accent">—</div>
+              </div>
+              <div class="glass p-4 rounded-lg">
+                <h3 class="text-sm text-slate-400">Akcje AI (ostatnie)</h3>
+                <div id="ai-actions" class="text-sm text-slate-300 mt-2">Brak aktywności</div>
+              </div>
+            </div>
+
+            <div class="glass p-4 rounded-lg">
+              <h3 class="font-semibold">Zamówienia (inteligencja)</h3>
+              <div id="orders-list" class="mt-3 space-y-3"></div>
+            </div>
+          </div>
+
+          <!-- Messages -->
+          <div data-panel="messages" class="panel hidden">
+            <div class="glass p-4 rounded-lg">
+              <h3 class="font-semibold">Wiadomości — Panel</h3>
+              <div class="grid grid-cols-4 gap-2 mt-3">
+                <div class="col-span-1 bg-slate-900 p-2 rounded">Oryginał</div>
+                <div class="col-span-1 bg-slate-900 p-2 rounded">Tłumaczenie PL</div>
+                <div class="col-span-1 bg-slate-900 p-2 rounded">Odpowiedź AI (DE)</div>
+                <div class="col-span-1 bg-slate-900 p-2 rounded">Akcja</div>
+              </div>
+              <div id="messages-grid" class="grid grid-cols-4 gap-2 mt-3"></div>
+            </div>
+            <div class="glass p-3 rounded-lg mt-4">
+              <h4 class="text-sm text-slate-400">Globalny czat Gemini</h4>
+              <div id="chat-log" class="h-40 overflow-y-auto bg-black/20 p-2 rounded mt-2"></div>
+              <div class="flex mt-2 space-x-2">
+                <input id="chat-input" class="flex-1 p-2 rounded bg-slate-800/60" placeholder="Zapytaj Gemini (np. Podsumuj sprzedaż)..." />
+                <button id="chat-send" class="px-4 py-2 rounded btn-accent">Wyślij</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Repricing -->
+          <div data-panel="repricing" class="panel hidden">
+            <div class="glass p-4 rounded-lg">
+              <h3 class="font-semibold">Repricing —zmiany cen i Buy Box</h3>
+              <div id="repricing-chart" class="h-44 bg-slate-900 rounded mt-3">[Wykres zmian cen - próbka]</div>
+              <div id="buy-box" class="mt-3 grid grid-cols-3 gap-2"></div>
+            </div>
+          </div>
+
+          <!-- SEO Autopilot -->
+          <div data-panel="seo" class="panel hidden">
+            <div class="glass p-4 rounded-lg">
+              <h3 class="font-semibold">SEO Autopilot — wygenerowane opisy</h3>
+              <div id="seo-list" class="mt-3 space-y-3"></div>
+            </div>
+          </div>
+
+          <!-- Inventory -->
+          <div data-panel="inventory" class="panel hidden">
+            <div class="glass p-4 rounded-lg">
+              <h3 class="font-semibold">Magazyn — Alerty</h3>
+              <div id="inventory-alerts" class="mt-3 space-y-3"></div>
+              <div class="mt-4">
+                <button id="gen-restock" class="py-2 px-4 rounded btn-accent">Generuj listę zakupów</button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Live feed -->
+        <div class="fixed bottom-20 left-80 right-6 glass p-3 rounded-lg max-h-40 overflow-y-auto">
+          <h4 class="text-sm text-slate-400">Live Feed</h4>
+          <div id="live-feed" class="text-sm mt-2 space-y-1"></div>
+        </div>
+
+        <!-- AI Chat bar -->
+        <div class="fixed bottom-4 left-80 right-6 flex items-center space-x-2">
+          <input id="ai-query" class="flex-1 p-3 rounded bg-slate-800/60" placeholder="Zapytaj Gemini 3 Pro (Szef)" />
+          <button id="ai-send" class="px-4 py-3 rounded btn-accent">Zapytaj Szefa</button>
+        </div>
+      </main>
+    </div>
+
+    <script type="module" src="/src/app.js"></script>
   </body>
 </html>
