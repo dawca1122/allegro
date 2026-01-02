@@ -19,7 +19,7 @@ export const apiRoutes = {
 export const mockOrders: Order[] = [
   {
     id: '1001',
-    buyer: 'jan.kowalski@gmail.com',
+    buyer: 'user@example.com',
     total: 149.99,
     status: 'new',
     date: '2023-10-25 14:30',
@@ -82,7 +82,7 @@ export const mockFetchOrders = async (): Promise<Order[]> => {
 
 export const mockActivityFeed = async (): Promise<ActivityLog[]> => {
   return [
-    { id: '1', type: 'ORDER', message: 'Nowe zamówienie: jan.kowalski@gmail.com (149.99 PLN)', timestamp: '2 min temu' },
+    { id: '1', type: 'ORDER', message: 'Nowe zamówienie: user@example.com (149.99 PLN)', timestamp: '2 min temu' },
     { id: '2', type: 'SYSTEM', message: 'Token API Allegro odświeżony pomyślnie', timestamp: '15 min temu' },
     { id: '3', type: 'MESSAGE', message: 'Autoresponder wysłał odpowiedź do Klienciak_123', timestamp: '1 godz. temu' },
     { id: '4', type: 'ERROR', message: 'Błąd synchronizacji stanu: SKU AUDIO-001', timestamp: '3 godz. temu' },

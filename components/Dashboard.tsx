@@ -12,19 +12,39 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState<string | null>(null)
   const [apiStatus, setApiStatus] = useState<'ok'|'demo'|'loading'>('loading')
+  // Read auth code from URL (helps re-fetch after OAuth redirect back)
+  const authCode = typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get('code') : null
 
   useEffect(() => {
-    fetch('/api/orders/dashboard')
-      .then((r) => {
+    const fetchDashboard = async () => {
+      try {
+        const r = await fetch('/api/orders/dashboard');
         if (!r.ok) throw new Error(`HTTP ${r.status}`);
-        return r.json();
-      })
-      .then((data) => setOrders(data))
-      .catch((err) => {
-        console.error(err)
-        setMessage('Failed to load dashboard')
-      })
-  }, [])
+        const data = await r.json();
+        setOrders(Array.isArray(data) ? data : []);
+      } catch (err) {
+        console.error(err);
+        setOrders(null);
+        setMessage('Błąd połączenia');
+      }
+    };
+
+    // Try to fetch immediately (mount or when auth code changes)
+    fetchDashboard();
+
+    // Also refresh when the window regains focus or becomes visible (useful after returning from OAuth)
+    const onFocus = () => fetchDashboard();
+    const onVisibility = () => {
+      if (document.visibilityState === 'visible') fetchDashboard();
+    };
+    window.addEventListener('focus', onFocus);
+    document.addEventListener('visibilitychange', onVisibility);
+
+    return () => {
+      window.removeEventListener('focus', onFocus);
+      document.removeEventListener('visibilitychange', onVisibility);
+    };
+  }, [authCode])
 
   const refreshData = async () => {
     setMessage(null)
@@ -142,8 +162,8 @@ export default function Dashboard() {
           </tbody>
         </table>
       ) : (
-        <div>Loading orders...</div>
-      )}
+        <div>OCZEKIWANIE NA DANE Z ALLEGRO...</div>
+      )} 
     </div>
   )
 }
