@@ -1,9 +1,19 @@
 import { createClient } from '@supabase/supabase-js';
 
-const supabase = createClient(
-  process.env.SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+let supabase: any = null;
+try {
+  if (!process.env.SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
+    console.error('Supabase env not set: SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY missing');
+  } else {
+    supabase = createClient(
+      process.env.SUPABASE_URL,
+      process.env.SUPABASE_SERVICE_ROLE_KEY
+    );
+  }
+} catch (e) {
+  console.error('Failed to initialize Supabase client', e);
+  supabase = null;
+}
 
 export default async function handler(req: any, res: any) {
   const { code } = req.query;
@@ -33,6 +43,10 @@ export default async function handler(req: any, res: any) {
     const secondsToExpire = data.expires_in || 43200;
     const expiresAt = new Date(Date.now() + (secondsToExpire * 1000)).toISOString();
 
+    if (!supabase) {
+      console.error('Supabase client not initialized, cannot store tokens');
+      throw new Error('Supabase not initialized');
+    }
     const { error } = await supabase
       .from('allegro_tokens')
       .upsert({
@@ -42,7 +56,10 @@ export default async function handler(req: any, res: any) {
         expires_at: expiresAt // Gwarantujemy, że to nie będzie null
       }, { onConflict: 'user_email' });
 
-    if (error) throw error;
+    if (error) {
+      console.error('Supabase upsert error:', error);
+      throw error;
+    }
 
     res.redirect('/?auth=success');
 
@@ -53,4 +70,4 @@ export default async function handler(req: any, res: any) {
       debug_info: 'Upewnij się, że zrobiłeś Redeploy na Vercel!' 
     });
   }
-}909
+}

@@ -74,7 +74,7 @@ const App: React.FC = () => {
             </button>
             <div className="flex items-center gap-3 pl-6 border-l border-border">
               <div className="text-right hidden sm:block">
-                <div className="text-sm font-medium text-white">{userName || 'Alex Kowalski'}</div>
+                <div className="text-sm font-medium text-white">{userName ?? ''}</div>
                   <div className="text-xs text-slate-500">Allegro Elite Seller</div>
               </div>
               <div className="w-9 h-9 bg-slate-700 rounded-full flex items-center justify-center border border-slate-600 text-slate-300">

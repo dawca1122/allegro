@@ -7,6 +7,7 @@ export const Dashboard = () => {
   const [orders, setOrders] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const [allegroConnected, setAllegroConnected] = useState<boolean | null>(null);
 
   // Funkcja obsługująca przekierowanie do autoryzacji Allegro
   const handleAllegroLogin = () => {
@@ -19,6 +20,18 @@ export const Dashboard = () => {
     const fetchOrders = async () => {
       setIsLoading(true);
       setError(null);
+      // Refresh allegro connection status
+      try {
+        const s = await fetch('/api/status');
+        if (s.ok) {
+          const sj = await s.json();
+          if (mounted) setAllegroConnected(Boolean(sj?.allegro));
+        } else {
+          if (mounted) setAllegroConnected(false);
+        }
+      } catch (e) {
+        if (mounted) setAllegroConnected(false);
+      }
       try {
         const res = await fetch('/api/orders/dashboard');
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -78,7 +91,7 @@ export const Dashboard = () => {
           ) : (
             <div className="flex items-center space-x-2 text-sm text-emerald-400 bg-emerald-500/10 px-3 py-1 rounded-full border border-emerald-500/20">
               <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
-              <span>System działa: Online</span>
+              <span>{allegroConnected ? 'Konto Allegro: POŁĄCZONE' : 'System działa: Online'}</span>
             </div>
           )}
         </div>

@@ -15,13 +15,42 @@ export default function Dashboard() {
 
   useEffect(() => {
     fetch('/api/orders/dashboard')
-      .then((r) => r.json())
+      .then((r) => {
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        return r.json();
+      })
       .then((data) => setOrders(data))
       .catch((err) => {
         console.error(err)
         setMessage('Failed to load dashboard')
       })
   }, [])
+
+  const refreshData = async () => {
+    setMessage(null)
+    setApiStatus('loading')
+    try {
+      const [sRes, dRes] = await Promise.all([
+        fetch('/api/status'),
+        fetch('/api/orders/dashboard')
+      ])
+      const s = await sRes.json()
+      if (s && s.ok && s.allegro && s.ai) setApiStatus('ok')
+      else setApiStatus('demo')
+
+      if (!dRes.ok) {
+        setMessage('Błąd połączenia')
+        setOrders(null)
+        return
+      }
+      const data = await dRes.json()
+      setOrders(Array.isArray(data) ? data : [])
+    } catch (e) {
+      console.error(e)
+      setMessage('Błąd połączenia')
+      setApiStatus('demo')
+    }
+  }
 
   const handleAllegroLogin = () => {
     // Redirect to the API route that starts Allegro OAuth
@@ -87,6 +116,7 @@ export default function Dashboard() {
         <button onClick={runRepricing} disabled={loading} className="btn primary">Run Repricing</button>
         <button onClick={runNegotiate} disabled={loading} className="btn secondary">Run Negotiate</button>
         <button onClick={handleAllegroLogin} className="btn accent">Połącz z Allegro</button>
+        <button onClick={refreshData} className="btn muted">Odnów połączenie</button>
       </div>
       {message && <div className="message">{message}</div>}
 

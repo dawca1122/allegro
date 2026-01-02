@@ -159,12 +159,11 @@ async def orders_dashboard(user=Depends(get_current_user)):
             if offers is not None and len(offers) > 0:
                 return JSONResponse(content=offers)
 
-            # Last resort: return sample data
-            result = [
-                {"id":"1","title":"Sample Item A","price":100.0,"suggested_price":95.0},
-                {"id":"2","title":"Sample Item B","price":50.0},
-            ]
-            return JSONResponse(content=result)
+            # Last resort: do NOT return fake/sample data. If we couldn't
+            # obtain offers from Allegro or via client credentials, respond
+            # with a non-OK status so clients can surface a real error
+            # (this prevents the UI from showing 'Sample Data').
+            return JSONResponse(status_code=404, content={"error": "No Allegro offers available or token missing"})
         return JSONResponse(content=result)
     except Exception as e:
         return JSONResponse(status_code=500, content={"error": str(e)})
