@@ -1,0 +1,5 @@
+# Ignore temporary predator UI files
+src/login.html
+src/predator*
+temp/
+predator/
