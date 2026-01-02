@@ -11,6 +11,7 @@ export default function Dashboard() {
   const [orders, setOrders] = useState<Order[] | null>(null)
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState<string | null>(null)
+  const [apiStatus, setApiStatus] = useState<'ok'|'demo'|'loading'>('loading')
 
   useEffect(() => {
     fetch('/api/orders/dashboard')
@@ -20,6 +21,16 @@ export default function Dashboard() {
         console.error(err)
         setMessage('Failed to load dashboard')
       })
+  }, [])
+
+  useEffect(() => {
+    fetch('/api/status')
+      .then((r) => r.json())
+      .then((s) => {
+        if (s && s.ok && s.allegro && s.ai) setApiStatus('ok')
+        else setApiStatus('demo')
+      })
+      .catch(() => setApiStatus('demo'))
   }, [])
 
   const runRepricing = async () => {
@@ -64,6 +75,9 @@ export default function Dashboard() {
 
   return (
     <div className="dashboard">
+      <div style={{position: 'absolute', top: 12, right: 16, fontSize: 12, color: '#9CA3AF'}}>
+        {apiStatus === 'loading' ? 'Status API: ...' : apiStatus === 'ok' ? 'Status API: OK' : 'Status API: Demo'}
+      </div>
       <div className="dashboard-controls">
         <button onClick={runRepricing} disabled={loading} className="btn primary">Run Repricing</button>
         <button onClick={runNegotiate} disabled={loading} className="btn secondary">Run Negotiate</button>

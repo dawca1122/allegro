@@ -38,9 +38,10 @@ class BaseAIHandler:
             logger.error(msg)
             return {'ok': False, 'error': msg}
 
-        api_key = os.environ.get('GOOGLE_API_KEY')
+        # Accept either GOOGLE_API_KEY or GEMINI_API_KEY (Vercel uses GEMINI_API_KEY)
+        api_key = os.environ.get('GOOGLE_API_KEY') or os.environ.get('GEMINI_API_KEY')
         if not api_key:
-            msg = 'GOOGLE_API_KEY not set'
+            msg = 'GOOGLE_API_KEY or GEMINI_API_KEY not set'
             logger.error(msg)
             return {'ok': False, 'error': msg}
 

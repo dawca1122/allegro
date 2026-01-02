@@ -72,7 +72,8 @@ async def orders_dashboard(user=Depends(get_current_user)):
             allegro_token = os.environ.get('ALLEGRO_API_TOKEN')
             allegro_client = os.environ.get('ALLEGRO_CLIENT_ID')
             allegro_secret = os.environ.get('ALLEGRO_CLIENT_SECRET')
-            google_key = os.environ.get('GOOGLE_API_KEY')
+            # Support both GOOGLE_API_KEY (legacy) and GEMINI_API_KEY (Vercel env)
+            google_key = os.environ.get('GOOGLE_API_KEY') or os.environ.get('GEMINI_API_KEY')
 
             def _normalize_offers(payload):
                 # Accept several possible response shapes from Allegro
@@ -167,6 +168,17 @@ async def orders_dashboard(user=Depends(get_current_user)):
         return JSONResponse(content=result)
     except Exception as e:
         return JSONResponse(status_code=500, content={"error": str(e)})
+
+
+@app.get('/api/status')
+async def api_status():
+    """Return whether required API keys are visible to the running service."""
+    try:
+        has_allegro = bool(os.environ.get('ALLEGRO_API_TOKEN') or (os.environ.get('ALLEGRO_CLIENT_ID') and os.environ.get('ALLEGRO_CLIENT_SECRET')))
+        has_gemini = bool(os.environ.get('GOOGLE_API_KEY') or os.environ.get('GEMINI_API_KEY'))
+        return JSONResponse(content={'ok': True, 'allegro': has_allegro, 'ai': has_gemini})
+    except Exception as e:
+        return JSONResponse(status_code=500, content={'ok': False, 'error': str(e)})
 
 @app.post('/api/execute_repricing')
 async def execute_repricing(request: Request, user=Depends(get_current_user)):
