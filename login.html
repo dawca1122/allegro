@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="pl">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Login — Predator AI</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>body{background:#020617;color:#e6eef8;font-family:Inter,system-ui,Segoe UI,Roboto}</style>
+  </head>
+  <body class="flex items-center justify-center min-h-screen">
+    <div class="w-full max-w-md p-6 glass rounded">
+      <h2 class="text-2xl font-bold mb-4">Zaloguj się — Predator AI</h2>
+      <form id="login-form" class="space-y-3">
+        <input id="email" placeholder="Email" class="w-full p-3 rounded bg-slate-900/60" />
+        <input id="password" type="password" placeholder="Hasło" class="w-full p-3 rounded bg-slate-900/60" />
+        <div class="flex justify-between">
+          <button type="button" id="btn-login" class="px-4 py-2 rounded btn-accent">Zaloguj</button>
+        </div>
+      </form>
+      <div id="msg" class="text-sm mt-3 text-rose-400"></div>
+    </div>
+
+    <script>
+      document.getElementById('btn-login').addEventListener('click', async ()=>{
+        const email = document.getElementById('email').value;
+        const password = document.getElementById('password').value;
+        const msg = document.getElementById('msg'); msg.textContent='';
+        try{
+          const res = await fetch('/api/auth/login', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({email, password})});
+          const j = await res.json();
+          if(res.ok && j.ok){
+            localStorage.setItem('auth_token', j.token);
+            window.location.href = '/index.html';
+          } else {
+            msg.textContent = j.error || 'Błąd logowania';
+          }
+        }catch(e){ msg.textContent = e.message }
+      });
+    </script>
+  </body>
+</html>

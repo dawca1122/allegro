@@ -2,6 +2,7 @@ import os
 import json
 import logging
 from typing import Dict, Any
+import socket
 
 try:
     import google.generativeai as genai
@@ -19,6 +20,18 @@ class BaseAIHandler:
     def generate(self, prompt: str, model: str = None, response_mime_type: str = None) -> Dict[str, Any]:
         model = model or self.model
         response_mime_type = response_mime_type or self.response_mime_type
+
+        # Heartbeat / host check: prevent running AI on unauthorized hosts
+        allowed_host = os.environ.get('ALLOWED_HOST')
+        if allowed_host:
+            try:
+                current = socket.gethostname()
+                if allowed_host != current:
+                    msg = f'Host {current} not allowed to run AI (allowed: {allowed_host})'
+                    logger.error(msg)
+                    return {'ok': False, 'error': msg}
+            except Exception:
+                logger.exception('Host check failed')
 
         if genai is None:
             msg = 'google.generativeai not installed'

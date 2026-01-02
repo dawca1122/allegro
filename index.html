@@ -29,6 +29,15 @@
     </style>
   </head>
   <body class="antialiased">
+    <script>
+      // Redirect to login if no valid token in localStorage
+      try{
+        const t = localStorage.getItem('auth_token');
+        if(!t && window.location.pathname !== '/login.html'){
+          window.location.href = '/login.html';
+        }
+      }catch(e){ /* ignore */ }
+    </script>
     <div class="min-h-screen flex">
       <!-- Sidebar -->
       <aside class="w-72 p-4 glass space-y-6 border-r border-slate-800">

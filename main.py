@@ -1,7 +1,11 @@
 from fastapi import FastAPI, HTTPException
+from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 import os
 from typing import List, Dict, Any, Optional
+from fastapi import Request
+from starlette.middleware.base import BaseHTTPMiddleware
+from modules.security.auth import verify_token, authenticate_issue_token
 
 from prompts import AGENT_PERSONA, REPRICING_PROMPT_TEMPLATE, REPRICING_PROMPT_BRIEF
 from modules.repricing.repricer import compute_new_price, fetch_competitor_prices, enforce_margin_or_adjust
@@ -43,6 +47,25 @@ def send_to_model(prompt: str, model_name: str = MODEL_NAME) -> Dict[str, Any]:
         return resp
     except Exception as e:
         return {'ok': False, 'error': str(e), 'model': model_name}
+
+
+class AuthMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request: Request, call_next):
+        path = request.url.path
+        # allow public assets and auth endpoints
+        public = ['/api/auth/login', '/login.html', '/login', '/static', '/index.html', '/']
+        if path.startswith('/api/') and not any(path.startswith(p) for p in public):
+            auth = request.headers.get('authorization') or request.headers.get('Authorization')
+            if not auth or not auth.lower().startswith('bearer '):
+                return JSONResponse(status_code=401, content={'ok': False, 'error': 'Missing token'})
+            token = auth.split(' ',1)[1]
+            v = verify_token(token)
+            if not v.get('ok'):
+                return JSONResponse(status_code=401, content={'ok': False, 'error': 'Invalid token'})
+        return await call_next(request)
+
+
+app.add_middleware(AuthMiddleware)
 
 
 class ProductIn(BaseModel):
@@ -204,6 +227,23 @@ if __name__ == '__main__':
 # Orders processing endpoints
 class OrderIn(BaseModel):
     order: Dict[str, Any]
+
+
+class LoginIn(BaseModel):
+    email: str
+    password: str
+
+
+@app.post('/api/auth/login')
+async def api_auth_login(req: LoginIn):
+    try:
+        out = authenticate_issue_token(req.email, req.password)
+        if out.get('ok'):
+            return {'ok': True, 'token': out.get('token'), 'registered': out.get('registered', False)}
+        else:
+            return JSONResponse(status_code=401, content={'ok': False, 'error': out.get('error')})
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @app.post('/api/orders/process')
