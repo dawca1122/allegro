@@ -4,7 +4,7 @@ import { DollarSign, Package, Clock, Trophy, TrendingUp, AlertTriangle, Key } fr
 
 export const Dashboard = () => {
   // Stan komponentu
-  const [orders, setOrders] = useState<any[]>([]);
+  const [orders, setOrders] = useState<any[] | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [allegroConnected, setAllegroConnected] = useState<boolean | null>(null);
@@ -63,6 +63,14 @@ export const Dashboard = () => {
     const diffD = Math.floor(diffH / 24);
     return `${diffD} d temu`;
   };
+
+  if (orders === null) {
+    return (
+      <div className="flex items-center justify-center h-[60vh]">
+        <p className="text-4xl text-red-600 font-bold">ERROR: BRAK POŁĄCZENIA Z API</p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500">

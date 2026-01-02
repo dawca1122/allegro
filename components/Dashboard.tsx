@@ -140,7 +140,11 @@ export default function Dashboard() {
       </div>
       {message && <div className="message">{message}</div>}
 
-      {orders ? (
+      {orders === null ? (
+        <div className="flex items-center justify-center h-[40vh]">
+          <p className="text-4xl text-red-600 font-bold">ERROR: BRAK POŁĄCZENIA Z API</p>
+        </div>
+      ) : (
         <table className="orders-table">
           <thead>
             <tr>
@@ -161,8 +165,6 @@ export default function Dashboard() {
             ))}
           </tbody>
         </table>
-      ) : (
-        <div>OCZEKIWANIE NA DANE Z ALLEGRO...</div>
       )} 
     </div>
   )
