@@ -10,6 +10,7 @@ from modules.finance.calculator import calculate_margin
 from modules.negotiator.negotiator import negotiate
 from modules.logistics.carrier_manager import select_optimal_carrier
 from modules.logistics.print_station import group_print_batch, generate_packing_slip
+from modules.orders.order_manager import process_new_order, get_dashboard_orders
 
 # try to import optional helpers
 try:
@@ -192,3 +193,26 @@ async def api_logistics_print_batch(req: PrintBatchRequest):
 if __name__ == '__main__':
     import uvicorn
     uvicorn.run(app, host='0.0.0.0', port=int(os.environ.get('PORT', 8000)))
+
+
+# Orders processing endpoints
+class OrderIn(BaseModel):
+    order: Dict[str, Any]
+
+
+@app.post('/api/orders/process')
+async def api_orders_process(req: OrderIn):
+    try:
+        summary = process_new_order(req.order)
+        return {'ok': True, 'summary': summary}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get('/api/orders/dashboard')
+async def api_orders_dashboard():
+    try:
+        data = get_dashboard_orders()
+        return {'ok': True, 'orders': data}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
