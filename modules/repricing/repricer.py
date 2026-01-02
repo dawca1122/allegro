@@ -1,6 +1,8 @@
 from typing import List, Dict, Any, Optional
 from datetime import datetime
 import os
+from modules.ai.ai_handler import call_gemini
+from prompts import AGENT_PERSONA, REPRICING_PROMPT_BRIEF, REPRICING_PROMPT_TEMPLATE
 
 try:
     from modules.finance.calculator import calculate_margin
@@ -109,6 +111,22 @@ def compute_new_price(product: Dict[str, Any], competitors: List[Dict[str, Any]]
         'actions': actions,
         'baseline': baseline
     }
+
+
+def run_repricing_ai(product: Dict[str, Any], competitors: List[Dict[str, Any]], config: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+    """Call Gemini (via ai_handler) with the repricing prompt and return parsed response.
+
+    Returns dict like {'ok': True, 'response': {...}} or {'ok': False, 'error': '...'}
+    """
+    try:
+        persona = AGENT_PERSONA
+        brief = REPRICING_PROMPT_BRIEF.format(persona=persona, product=str(product), competitors=str(competitors), config=str(config or {}))
+        prompt = REPRICING_PROMPT_TEMPLATE.format(persona=persona) + "\n\n" + brief
+        model = os.environ.get('LM_MODEL', 'models/gemini-3-pro-preview')
+        resp = call_gemini(prompt, model=model, response_mime_type='application/json')
+        return resp
+    except Exception as e:
+        return {'ok': False, 'error': str(e)}
 
 
 def enforce_margin_or_adjust(candidate_price: float, product: Dict[str, Any], config: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
