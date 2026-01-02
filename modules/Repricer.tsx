@@ -3,6 +3,28 @@ import { Zap, TrendingDown, TrendingUp, AlertCircle } from 'lucide-react';
 import { mockRepricing } from '../services/mockApi';
 
 export const Repricer = () => {
+  const [loading, setLoading] = React.useState(false);
+  const [message, setMessage] = React.useState<string | null>(null);
+
+  const runRepricing = async () => {
+    setLoading(true);
+    setMessage(null);
+    try {
+      const res = await fetch('/api/execute_repricing', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ items: [] }),
+      });
+      const data = await res.json();
+      setMessage('Repricing executed');
+      console.log(data);
+    } catch (e) {
+      console.error(e);
+      setMessage('Repricing failed');
+    } finally {
+      setLoading(false);
+    }
+  };
   return (
     <div className="space-y-6 animate-in fade-in duration-300">
       <div className="flex justify-between items-end">
@@ -16,6 +38,12 @@ export const Repricer = () => {
       </div>
 
       <div className="grid grid-cols-1 gap-4">
+        <div className="flex items-center justify-end mb-4 gap-3">
+          <button onClick={runRepricing} disabled={loading} className="btn primary">
+            {loading ? 'Running...' : 'Run Repricing'}
+          </button>
+          {message && <div className="text-sm text-slate-300">{message}</div>}
+        </div>
         {mockRepricing.map((item) => {
           const isSurge = item.strategy === 'surge';
           

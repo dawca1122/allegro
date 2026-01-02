@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Sidebar } from './components/Sidebar';
-import { Dashboard } from './modules/Dashboard';
+import Dashboard from './components/Dashboard';
 import { Orders } from './modules/Orders';
 import Messages from './modules/Messages';
 import ProfitCalculator from './modules/ProfitCalculator';
