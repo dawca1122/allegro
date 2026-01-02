@@ -23,6 +23,11 @@ export default function Dashboard() {
       })
   }, [])
 
+  const handleAllegroLogin = () => {
+    // Redirect to the API route that starts Allegro OAuth
+    window.location.href = '/api/auth';
+  };
+
   useEffect(() => {
     fetch('/api/status')
       .then((r) => r.json())
@@ -81,6 +86,7 @@ export default function Dashboard() {
       <div className="dashboard-controls">
         <button onClick={runRepricing} disabled={loading} className="btn primary">Run Repricing</button>
         <button onClick={runNegotiate} disabled={loading} className="btn secondary">Run Negotiate</button>
+        <button onClick={handleAllegroLogin} className="btn accent">Połącz z Allegro</button>
       </div>
       {message && <div className="message">{message}</div>}
 

@@ -176,7 +176,11 @@ async def api_status():
     try:
         has_allegro = bool(os.environ.get('ALLEGRO_API_TOKEN') or (os.environ.get('ALLEGRO_CLIENT_ID') and os.environ.get('ALLEGRO_CLIENT_SECRET')))
         has_gemini = bool(os.environ.get('GOOGLE_API_KEY') or os.environ.get('GEMINI_API_KEY'))
-        return JSONResponse(content={'ok': True, 'allegro': has_allegro, 'ai': has_gemini})
+        # Expose a friendly user name when auth is disabled or env provided
+        user_name = os.environ.get('API_USER_NAME') or os.environ.get('ALLEGRO_USER_NAME')
+        if not user_name and os.environ.get('DISABLE_AUTH', '1') == '1':
+            user_name = 'Dev User'
+        return JSONResponse(content={'ok': True, 'allegro': has_allegro, 'ai': has_gemini, 'user': user_name})
     except Exception as e:
         return JSONResponse(status_code=500, content={'ok': False, 'error': str(e)})
 

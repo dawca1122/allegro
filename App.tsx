@@ -25,6 +25,16 @@ import { Bell, User } from 'lucide-react';
 
 const App: React.FC = () => {
   const [activeModule, setActiveModule] = useState<string>('dashboard');
+  const [userName, setUserName] = useState<string | null>(null);
+
+  React.useEffect(() => {
+    fetch('/api/status')
+      .then((r) => r.json())
+      .then((j) => {
+        if (j && j.user) setUserName(j.user);
+      })
+      .catch(() => {});
+  }, []);
 
   const renderModule = () => {
     switch (activeModule) {
@@ -64,8 +74,8 @@ const App: React.FC = () => {
             </button>
             <div className="flex items-center gap-3 pl-6 border-l border-border">
               <div className="text-right hidden sm:block">
-                <div className="text-sm font-medium text-white">Alex Kowalski</div>
-                <div className="text-xs text-slate-500">Allegro Elite Seller</div>
+                <div className="text-sm font-medium text-white">{userName || 'Alex Kowalski'}</div>
+                  <div className="text-xs text-slate-500">Allegro Elite Seller</div>
               </div>
               <div className="w-9 h-9 bg-slate-700 rounded-full flex items-center justify-center border border-slate-600 text-slate-300">
                 <User className="w-5 h-5" />

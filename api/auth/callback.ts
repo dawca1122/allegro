@@ -12,7 +12,8 @@ export default async function handler(req: any, res: any) {
   const basicAuth = Buffer.from(`${process.env.ALLEGRO_CLIENT_ID}:${process.env.ALLEGRO_CLIENT_SECRET}`).toString('base64');
 
   try {
-    const response = await fetch('https://allegro.pl/auth/oauth/token', {
+    const token_url = process.env.ALLEGRO_TOKEN_URL || 'https://allegro.pl/auth/oauth/token'
+    const response = await fetch(token_url, {
       method: 'POST',
       headers: {
         'Authorization': `Basic ${basicAuth}`,
@@ -21,7 +22,7 @@ export default async function handler(req: any, res: any) {
       body: new URLSearchParams({
         grant_type: 'authorization_code',
         code: code as string,
-        redirect_uri: 'https://allegro-app.vercel.app/api/auth/callback'
+        redirect_uri: process.env.ALLEGRO_REDIRECT_URI || 'https://allegro-app.vercel.app/api/auth/callback'
       })
     });
 

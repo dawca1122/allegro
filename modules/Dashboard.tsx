@@ -20,7 +20,7 @@ export const Dashboard = () => {
       setIsLoading(true);
       setError(null);
       try {
-        const res = await fetch('/api/allegro/orders');
+        const res = await fetch('/api/orders/dashboard');
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const data = await res.json();
         if (mounted) setOrders(Array.isArray(data) ? data : []);
