@@ -4,7 +4,7 @@ import { DollarSign, Package, Clock, Trophy, TrendingUp, AlertTriangle, Key } fr
 
 export const Dashboard = () => {
   // Stan komponentu
-  const [orders, setOrders] = useState<any[] | null>(null);
+  const [orders, setOrders] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [allegroConnected, setAllegroConnected] = useState<boolean | null>(null);
@@ -20,6 +20,7 @@ export const Dashboard = () => {
     const fetchOrders = async () => {
       setIsLoading(true);
       setError(null);
+      console.log('Fetching real data...');
       // Refresh allegro connection status
       try {
         const s = await fetch('/api/status');
@@ -34,11 +35,15 @@ export const Dashboard = () => {
       }
       try {
         const res = await fetch('/api/orders/dashboard');
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        if (!res.ok) {
+          console.error('Dashboard fetch error, status:', res.status);
+          throw new Error('BŁĄD POŁĄCZENIA: SPRAWDŹ TOKEN W SUPABASE');
+        }
         const data = await res.json();
         if (mounted) setOrders(Array.isArray(data) ? data : []);
       } catch (err: any) {
-        if (mounted) setError(err.message || 'Błąd pobierania zamówień');
+        console.error('Dashboard fetch failed:', err);
+        if (mounted) setError('BŁĄD POŁĄCZENIA: SPRAWDŹ TOKEN W SUPABASE');
       } finally {
         if (mounted) setIsLoading(false);
       }
@@ -64,13 +69,7 @@ export const Dashboard = () => {
     return `${diffD} d temu`;
   };
 
-  if (orders === null) {
-    return (
-      <div className="flex items-center justify-center h-[60vh]">
-        <p className="text-4xl text-red-600 font-bold">ERROR: BRAK POŁĄCZENIA Z API</p>
-      </div>
-    );
-  }
+
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
@@ -94,7 +93,7 @@ export const Dashboard = () => {
           {error ? (
             <div className="flex items-center space-x-2 text-sm text-red-400 bg-red-500/10 px-3 py-1 rounded-full border border-red-500/20">
               <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
-              <span>Błąd połączenia</span>
+              <span>{error}</span>
             </div>
           ) : (
             <div className="flex items-center space-x-2 text-sm text-emerald-400 bg-emerald-500/10 px-3 py-1 rounded-full border border-emerald-500/20">
@@ -130,7 +129,7 @@ export const Dashboard = () => {
                     value={isLoading ? '...' : formattedRevenue}
                     icon={DollarSign}
                     trend={""}
-                    status={todayRevenue > 0 ? 'success' : 'neutral'}
+                    status={todayRevenue > 0 ? 'success' : 'warning'}
                   />
                   <KPICard
                     title="Do wysłania"
@@ -180,7 +179,7 @@ export const Dashboard = () => {
                 </div>
               ))
             ) : error ? (
-              <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-sm text-red-200">Błąd: {error}</div>
+              <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-sm text-red-200">{error}</div>
             ) : orders.length === 0 ? (
               <div className="p-3 bg-slate-800/50 rounded-lg border border-slate-700/50 text-sm text-slate-400">Brak zamówień do wyświetlenia.</div>
             ) : (
